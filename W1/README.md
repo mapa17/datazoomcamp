@@ -56,6 +56,7 @@ SELECT
 ```
 
 **Most common dropoff location for travels that start in central park**
+```
 SELECT
     COUNT(t.index) cnt,
     CONCAT(zdo."Borough", '/', zdo."Zone") AS "dropoff_loc"
@@ -67,3 +68,4 @@ WHERE t."PULocationID" = 43 AND t
 GROUP BY "dropoff_loc"
 ORDER BY cnt DESC
 LIMIT 100;
+```
