@@ -1,4 +1,14 @@
+# Getting the data
+```
+wget https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.csv
+wget https://s3.amazonaws.com/nyc-tlc/misc/taxi+_zone_lookup.csv
+```
 # Using Postgress container
+
+Add user to docker group
+```bash
+usermod -a -G docker ${USER}
+```
 
 ```bash
 docker run -it \
@@ -12,12 +22,12 @@ docker run -it \
 
 # Ingest the data
 
- ```bash
- python data_ingest.py taxi+_zone_lookup.csv taxi_zones
+```bash
+python data_ingest.py taxi+_zone_lookup.csv taxi_zones
 ```
 
 ```bash
-python data_ingest.py yellow_tripdata_2021-01.csv 
+python data_ingest.py yellow_tripdata_2021-01.csv ny_taxi_trips 
 ```
 
 
@@ -69,3 +79,60 @@ GROUP BY "dropoff_loc"
 ORDER BY cnt DESC
 LIMIT 100;
 ```
+
+**Number of different drop off locations from central park**
+```
+SELECT
+    CAST(tpep_pickup_datetime AS DATE) as "day",
+    COUNT(DISTINCT t."DOLocationID") as nDOL
+FROM
+    ny_taxi_trips t LEFT JOIN taxi_zones zpu
+        ON t."PULocationID" = zpu."LocationID"
+    LEFT JOIN taxi_zones zdo
+        ON t."DOLocationID" = zpu."LocationID"
+WHERE t."PULocationID" = 43
+GROUP BY
+    CAST(tpep_pickup_datetime AS DATE)
+ORDER BY "day" ASC;
+```
+
+**Note about quotes in postgres**
+`In PostgreSQL, double quotes (like "a red dog") are always used to denote delimited identifiers. In this context, an identifier is the name of an object within PostgreSQL, such as a table name or a column name. Delimited identifiers are identifiers that have a specifically marked beginning and end.`
+
+`Single quotes, on the other hand, are used to indicate that a token is a string. This is used in many different contexts throughout PostgreSQL.`
+
+
+**The frequency of drop off locations from central park on the 14.1.2021**
+```SQL
+SELECT
+    CONCAT(zdo."Borough", '/', zdo."Zone") AS "dropoff_loc",
+    COUNT(t."DOLocationID") as nDrops
+FROM
+    ny_taxi_trips t LEFT JOIN taxi_zones zpu
+        ON t."PULocationID" = zpu."LocationID"
+    LEFT JOIN taxi_zones zdo
+        ON t."DOLocationID" = zpu."LocationID"
+WHERE t."PULocationID" = 43 AND CAST(tpep_pickup_datetime AS DATE) = '2021-01-14'
+GROUP BY
+    "dropoff_loc"
+ORDER BY nDrops DESC;
+```
+
+**Average fare/total_amount for a each direction (pickup / drop off)**
+```SQL
+SELECT
+    CONCAT(zpu."Zone", '/', zdo."Zone") AS "direction",
+    AVG(t."total_amount") AS avg_fare
+FROM
+    ny_taxi_trips t LEFT JOIN taxi_zones zpu
+        ON t."PULocationID" = zpu."LocationID"
+    LEFT JOIN taxi_zones zdo
+        ON t."DOLocationID" = zpu."LocationID"
+GROUP BY
+    "direction"
+ORDER BY "avg_fare" DESC;
+```
+
+`
+Port Richmond/Arden Heights
+`
