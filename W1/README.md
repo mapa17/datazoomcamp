@@ -42,7 +42,7 @@ DESCRIBE ny_taxi_trips;
 ```
 
 **Number of trips each day ...**
-```
+```SQL
 SELECT
      CAST(tpep_pickup_datetime AS DATE) as "day",
      COUNT(1)
@@ -54,7 +54,7 @@ SELECT
 ```
 
 **Max tip per day ...**
-```
+```SQL
 SELECT
      CAST(tpep_pickup_datetime AS DATE) as "day", COUNT(1),
      MAX(tip_amount) as max_tip
@@ -66,7 +66,7 @@ SELECT
 ```
 
 **Most common dropoff location for travels that start in central park**
-```
+```SQL
 SELECT
     COUNT(t.index) cnt,
     CONCAT(zdo."Borough", '/', zdo."Zone") AS "dropoff_loc"
@@ -81,7 +81,7 @@ LIMIT 100;
 ```
 
 **Number of different drop off locations from central park**
-```
+```SQL
 SELECT
     CAST(tpep_pickup_datetime AS DATE) as "day",
     COUNT(DISTINCT t."DOLocationID") as nDOL
@@ -111,7 +111,7 @@ FROM
     ny_taxi_trips t LEFT JOIN taxi_zones zpu
         ON t."PULocationID" = zpu."LocationID"
     LEFT JOIN taxi_zones zdo
-        ON t."DOLocationID" = zpu."LocationID"
+        ON t."DOLocationID" = zdo."LocationID"
 WHERE t."PULocationID" = 43 AND CAST(tpep_pickup_datetime AS DATE) = '2021-01-14'
 GROUP BY
     "dropoff_loc"
@@ -127,7 +127,7 @@ FROM
     ny_taxi_trips t LEFT JOIN taxi_zones zpu
         ON t."PULocationID" = zpu."LocationID"
     LEFT JOIN taxi_zones zdo
-        ON t."DOLocationID" = zpu."LocationID"
+        ON t."DOLocationID" = zdo."LocationID"
 GROUP BY
     "direction"
 ORDER BY "avg_fare" DESC;
