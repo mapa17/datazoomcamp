@@ -1,14 +1,4 @@
-# Getting the data
-```
-wget https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.csv
-wget https://s3.amazonaws.com/nyc-tlc/misc/taxi+_zone_lookup.csv
-```
 # Using Postgress container
-
-Add user to docker group
-```bash
-usermod -a -G docker ${USER}
-```
 
 ```bash
 docker run -it \
@@ -22,12 +12,12 @@ docker run -it \
 
 # Ingest the data
 
-```bash
-python data_ingest.py taxi+_zone_lookup.csv taxi_zones
+ ```bash
+ python data_ingest.py taxi+_zone_lookup.csv taxi_zones
 ```
 
 ```bash
-python data_ingest.py yellow_tripdata_2021-01.csv ny_taxi_trips 
+python data_ingest.py yellow_tripdata_2021-01.csv 
 ```
 
 
