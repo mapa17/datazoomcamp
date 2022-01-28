@@ -41,7 +41,7 @@ pgcli -h localhost -p 5432 -u root -d ny_taxi
 DESCRIBE ny_taxi_trips;
 ```
 
-**Number of trips each day ...**
+## Number of trips each day
 ```SQL
 SELECT
      CAST(tpep_pickup_datetime AS DATE) as "day",
@@ -53,7 +53,7 @@ SELECT
  ORDER BY "day" ASC;
 ```
 
-**Max tip per day ...**
+## Max tip per day
 ```SQL
 SELECT
      CAST(tpep_pickup_datetime AS DATE) as "day", COUNT(1),
@@ -65,31 +65,52 @@ SELECT
  ORDER BY "day" ASC;
 ```
 
-**Most common dropoff location for travels that start in central park**
+**Improvements**
+One can do the GROUP BY on results form SELECT instead of casting again
+
+## Most common dropoff location for travels that start in central park
 ```SQL
 SELECT
     COUNT(t.index) cnt,
     CONCAT(zdo."Borough", '/', zdo."Zone") AS "dropoff_loc"
 FROM
-    ny_taxi_trips t LEFT JOIN taxi_zones zpu
-        ON t."PULocationID" = zpu."LocationID"
-    LEFT JOIN taxi_zones zdo ON t."DOLocationID" = zpu."LocationID"
-WHERE t."PULocationID" = 43 AND t
+    ny_taxi_trips t
+LEFT JOIN taxi_zones zpu
+    ON t."PULocationID" = zpu."LocationID"
+LEFT JOIN taxi_zones zdo
+    ON t."DOLocationID" = zpo."LocationID"
+WHERE t."PULocationID" = 43
 GROUP BY "dropoff_loc"
 ORDER BY cnt DESC
 LIMIT 100;
 ```
 
-**Number of different drop off locations from central park**
+**Improvements**
+One can use the SQL function `COALESCE()` in order to return none empty values from a list (have a default value) see [here](https://www.w3schools.com/sql/func_sqlserver_coalesce.asp)
+
+So if there is no value in a selection or column 'Unknown' will be used instead
+```SQl
+    CONCAT(COALESCE(zdo."Borough", 'Unknown'), '/', COALESCE(zdo."Zone", 'Unknown')) AS "dropoff_loc"
+```
+
+In addition instead of filtering for a constant (43) one can use pattern matching with `ILIKE`
+Where `%` can stand for one or more characters.
+
+```SQL
+WHERE t."PULocationID" ILIKE '%central park%' 
+```
+
+## Number of different drop off locations from central park
 ```SQL
 SELECT
     CAST(tpep_pickup_datetime AS DATE) as "day",
     COUNT(DISTINCT t."DOLocationID") as nDOL
 FROM
-    ny_taxi_trips t LEFT JOIN taxi_zones zpu
-        ON t."PULocationID" = zpu."LocationID"
-    LEFT JOIN taxi_zones zdo
-        ON t."DOLocationID" = zpu."LocationID"
+    ny_taxi_trips t
+LEFT JOIN taxi_zones zpu
+    ON t."PULocationID" = zpu."LocationID"
+LEFT JOIN taxi_zones zdo
+    ON t."DOLocationID" = zpo."LocationID"
 WHERE t."PULocationID" = 43
 GROUP BY
     CAST(tpep_pickup_datetime AS DATE)
@@ -108,10 +129,11 @@ SELECT
     CONCAT(zdo."Borough", '/', zdo."Zone") AS "dropoff_loc",
     COUNT(t."DOLocationID") as nDrops
 FROM
-    ny_taxi_trips t LEFT JOIN taxi_zones zpu
-        ON t."PULocationID" = zpu."LocationID"
-    LEFT JOIN taxi_zones zdo
-        ON t."DOLocationID" = zdo."LocationID"
+    ny_taxi_trips t
+LEFT JOIN taxi_zones zpu
+    ON t."PULocationID" = zpu."LocationID"
+LEFT JOIN taxi_zones zdo
+    ON t."DOLocationID" = zdo."LocationID"
 WHERE t."PULocationID" = 43 AND CAST(tpep_pickup_datetime AS DATE) = '2021-01-14'
 GROUP BY
     "dropoff_loc"
@@ -124,10 +146,11 @@ SELECT
     CONCAT(zpu."Zone", '/', zdo."Zone") AS "direction",
     AVG(t."total_amount") AS avg_fare
 FROM
-    ny_taxi_trips t LEFT JOIN taxi_zones zpu
-        ON t."PULocationID" = zpu."LocationID"
-    LEFT JOIN taxi_zones zdo
-        ON t."DOLocationID" = zdo."LocationID"
+    ny_taxi_trips t
+LEFT JOIN taxi_zones zpu
+    ON t."PULocationID" = zpu."LocationID"
+LEFT JOIN taxi_zones zdo
+    ON t."DOLocationID" = zdo."LocationID"
 GROUP BY
     "direction"
 ORDER BY "avg_fare" DESC;
